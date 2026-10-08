@@ -1,0 +1,27 @@
+{
+  "name": "Known cryptominer binary started on a server",
+  "description": "Lab rule 2 of 3 for the CTIA cryptomining-001 scenario. The single most common way a SOC finds cryptomining at all: match the miner binary by name. In a real estate this rule fires constantly, because attackers rename the binary, wrap it in a loader, or run it from memory - which is exactly why a detection estate needs more than one rule. In this lab it fires once, on the child of the PowerShell that rule 1 caught. Deliberately included even though it names the mining binary, because the alert text the student was handed already says a second unfamiliar executable appeared, and because a rule that only ever fires once is the most realistic thing on the whole Alerts page. A production version of this rule would match on file hash, signer, and image path as well as name, and would be joined to rule 1 so that one download event and one miner event are triaged as a single incident rather than two.",
+  "type": "query",
+  "risk_score": 99,
+  "severity": "critical",
+  "tags": [
+    "ctia-lab",
+    "cryptomining",
+    "malware-detection",
+    "execution",
+    "detection-engineering"
+  ],
+  "enabled": true,
+  "interval": "1m",
+  "from": "now-365d",
+  "to": "now",
+  "index": [
+    "auth-*"
+  ],
+  "timeField": "@timestamp",
+  "query": "event.code: 4688 and process.name: \"xmrig.exe\"",
+  "language": "kuery",
+  "max_signals": 100,
+  "actions": [],
+  "notify_when": "onActiveAlert"
+}

@@ -1,0 +1,77 @@
+{
+  "index_patterns": [
+    "network-*"
+  ],
+  "template": {
+    "mappings": {
+      "properties": {
+        "@timestamp": {
+          "type": "date"
+        },
+        "host.name": {
+          "type": "keyword"
+        },
+        "host.ip": {
+          "type": "ip"
+        },
+        "event.category": {
+          "type": "keyword"
+        },
+        "event.action": {
+          "type": "keyword"
+        },
+        "event.outcome": {
+          "type": "keyword"
+        },
+        "event.type": {
+          "type": "keyword"
+        },
+        "event.code": {
+          "type": "long"
+        },
+        "source.ip": {
+          "type": "ip"
+        },
+        "source.port": {
+          "type": "long"
+        },
+        "destination.ip": {
+          "type": "ip"
+        },
+        "destination.port": {
+          "type": "long"
+        },
+        "network.protocol": {
+          "type": "keyword"
+        },
+        "network.transport": {
+          "type": "keyword"
+        },
+        "network.bytes": {
+          "type": "long"
+        },
+        "message": {
+          "type": "text"
+        },
+        "dns.question.name": {
+          "type": "keyword"
+        },
+        "dns.question.registered_domain": {
+          "type": "keyword"
+        },
+        "dns.question.subdomain": {
+          "type": "keyword"
+        },
+        "dns.question.type": {
+          "type": "keyword"
+        },
+        "dns.resolved_ip": {
+          "type": "ip"
+        },
+        "dns.response_code": {
+          "type": "keyword"
+        }
+      }
+    }
+  }
+}

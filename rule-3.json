@@ -1,0 +1,27 @@
+{
+  "name": "Tiny outbound keepalives on a single non-standard port",
+  "description": "Lab rule 3 of 3 for the CTIA cryptomining-001 scenario, and the one that makes this lab's trap survivable. A cryptominer does not exfiltrate: after the binary lands it opens one long-lived session to its pool and exchanges about a kilobyte every few minutes, forever. A volume-based rule misses it completely, so the signature has to be port plus size - a non-standard port carrying traffic too small to be a real transfer. That is what this rule keys on, and it is why it fires four times where the two process rules fire once each: four separate keepalive records, one ongoing operation. It is deliberately narrow, naming a port rather than a destination, because a real estate has thousands of legitimate services on odd ports and the volume clause is what keeps this from being one of them. The time window is long for the same lab-only reason as the other two rules.",
+  "type": "query",
+  "risk_score": 73,
+  "severity": "high",
+  "tags": [
+    "ctia-lab",
+    "cryptomining",
+    "command-and-control",
+    "network-beaconing",
+    "detection-engineering"
+  ],
+  "enabled": true,
+  "interval": "1m",
+  "from": "now-365d",
+  "to": "now",
+  "index": [
+    "network-*"
+  ],
+  "timeField": "@timestamp",
+  "query": "event.action: \"network_connection\" and destination.port: 3333 and network.bytes < 2048",
+  "language": "kuery",
+  "max_signals": 100,
+  "actions": [],
+  "notify_when": "onActiveAlert"
+}

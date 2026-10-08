@@ -1,0 +1,27 @@
+{
+  "name": "PowerShell started by a remote-execution service",
+  "description": "Lab rule 1 of 3 for the CTIA cryptomining-001 scenario, and the one the alert is named after. A PowerShell process whose parent is the WMI provider host is the delivery step of a cryptomining infection - something remote told that server to fetch and run a file. It fires exactly once in this dataset, which is the point of the lab: cryptomining is low-and-slow and a rule written against the noise a miner makes stays quiet. The query is the same one guided-walkthrough.html asks for by hand, narrowed to the one row that matters. The time window is deliberately long because this lab ships historical data - a lab-only concession, not a production setting; a real deployment would decode the -EncodedCommand payload, alert on any wmiprvse.exe parent, and treat a service account creating a process as worth a look on its own.",
+  "type": "query",
+  "risk_score": 73,
+  "severity": "high",
+  "tags": [
+    "ctia-lab",
+    "cryptomining",
+    "service-account-abuse",
+    "execution",
+    "detection-engineering"
+  ],
+  "enabled": true,
+  "interval": "1m",
+  "from": "now-365d",
+  "to": "now",
+  "index": [
+    "auth-*"
+  ],
+  "timeField": "@timestamp",
+  "query": "event.code: 4688 and process.name: \"powershell.exe\" and process.parent.name: \"wmiprvse.exe\"",
+  "language": "kuery",
+  "max_signals": 100,
+  "actions": [],
+  "notify_when": "onActiveAlert"
+}
