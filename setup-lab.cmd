@@ -764,7 +764,10 @@ if not "%CURLCODE%"=="200" (
   call :fail "Kibana refused to create the data view !DVPAT!, HTTP %CURLCODE%" "The log data is still loaded. Check  docker logs %SCEN%-kibana  and run this file again."
   exit /b 1
 )
-call :docurl -s -o "%WORK%\dv-find.json" %KBAUTH% "%KBURL%/api/saved_objects/_find?type=index-pattern^&search_fields=title^&search=!DVPAT!^&fields=title^&per_page=50"
+rem the four ampersands here are deliberately bare - see the note on :esdocount
+rem about why a caret in front of them would be doubled by CALL and sent to
+rem Kibana as ^^&, which makes this lookup miss the data view it just created.
+call :docurl -s -o "%WORK%\dv-find.json" %KBAUTH% "%KBURL%/api/saved_objects/_find?type=index-pattern&search_fields=title&search=!DVPAT!&fields=title&per_page=50"
 findstr /c:"!DVPAT!" "%WORK%\dv-find.json" >nul 2>&1
 if errorlevel 1 (
   echo  ERROR: the data view was created but the pattern "!DVPAT!" was not stored.
@@ -930,16 +933,34 @@ rem     %~3 is an optional query body.  Without it this is a plain count of
 rem     everything in the index; with one it counts only what matches, which is
 rem     how :mkrule asks "is this rule already installed" without needing a
 rem     response it would then have to take apart in batch.
+rem
+rem     The count URL is written out in full on each call line below, with plain
+rem     ampersands.  Do not move it into a variable, and do not escape those
+rem     ampersands with a caret.  CALL parses its command line a second time,
+rem     so a caret written here arrives at curl doubled:
+rem
+rem         written here   set "U=.._count?allow_no_indices=true^&filter_path=count"
+rem         curl receives  .._count?allow_no_indices=true^^&filter_path=count
+rem
+rem     and Elasticsearch refuses the count with HTTP 400,
+rem         Could not convert [allow_no_indices] to boolean
+rem         Failed to parse value [true^^] as only [true] or [false] are allowed
+rem
+rem     which aborts the run before the detection rule is installed and leaves
+rem     the Alerts page empty.  A bare & inside the quoted argument survives
+rem     both parses intact, which is what the call lines below rely on - the
+rem     same style already used by the _bulk URL above.  setup-lab.sh has no
+rem     second parse, so it works there either way; do not copy a caret back
+rem     into the shell version.
 :esdocount
 set "EDIDX=%~1"
 set "EDVAR=%~2"
 set "EDQ=%~3"
-set "EDCNTURL=%ESURL%/%EDIDX%/_count?allow_no_indices=true^&filter_path=count"
 call :docurl -s -o nul -X POST %ESAUTH% "%ESURL%/%EDIDX%/_refresh"
 if defined EDQ (
-  call :docurl -s -o "%WORK%\cnt.json" %ESAUTH% -X POST -H "Content-Type: application/json" --data-binary "@%EDQ%" "%EDCNTURL%"
+  call :docurl -s -o "%WORK%\cnt.json" %ESAUTH% -X POST -H "Content-Type: application/json" --data-binary "@%EDQ%" "%ESURL%/%EDIDX%/_count?allow_no_indices=true&filter_path=count"
 ) else (
-  call :docurl -s -o "%WORK%\cnt.json" %ESAUTH% "%EDCNTURL%"
+  call :docurl -s -o "%WORK%\cnt.json" %ESAUTH% "%ESURL%/%EDIDX%/_count?allow_no_indices=true&filter_path=count"
 )
 if not "%CURLCODE%"=="200" (
   call :fail "could not read the document count of %EDIDX%, HTTP %CURLCODE%" "Nothing was changed."
